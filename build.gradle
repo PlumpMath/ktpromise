@@ -15,6 +15,11 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
 
 sourceCompatibility = 1.5
 
@@ -31,4 +36,74 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     testCompile "junit:junit:4.11"
+}
+
+
+
+
+task javadoc2(type: Javadoc) {
+    failOnError = false
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc2) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives jar
+    archives javadocJar
+    archives sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+if (project.hasProperty('sonatypeUsername')) {
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: project.sonatypeUsername, password: project.sonatypePassword)
+                }
+
+                pom.project {
+                    name "${project.name}"
+                    packaging 'jar'
+                    description 'A very simple promise library with async/await for Kotlin 1.1 or greater'
+                    url 'https://github.com/soywiz/ktpromise/'
+                    inceptionYear '2016'
+
+                    scm {
+                        url 'scm:git@github.com:soywiz/ktpromise.git'
+                        connection 'scm:git@github.com:soywiz/ktpromise.git'
+                        developerConnection 'scm:git@github.com:soywiz/ktpromise.git'
+                    }
+
+                    licenses {
+                        license {
+                            name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'soywiz'
+                            name 'Carlos Ballesteros Velasco'
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
