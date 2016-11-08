@@ -26,12 +26,12 @@ class Promise<T : Any> {
             if (error != null) {
                 while (errorCallbacks.isNotEmpty()) {
                     val callback = errorCallbacks.remove()
-                    callback(error!!)
+                    EventLoop.impl.queue { callback(error!!) }
                 }
             } else if (value != null) {
                 while (valueCallbacks.isNotEmpty()) {
                     val callback = valueCallbacks.remove()
-                    callback(value!!)
+                    EventLoop.impl.queue { callback(value!!) }
                 }
             }
             errorCallbacks.clear()
@@ -54,6 +54,24 @@ class Promise<T : Any> {
                 error.printStackTrace()
             }
             promise._check()
+        }
+    }
+    open class EventLoop {
+        companion object {
+            var impl = EventLoop()
+
+            inline fun tempImpl(impl: EventLoop, callback: () -> Unit) {
+                val old = this.impl
+                this.impl = impl
+                try {
+                    callback()
+                } finally {
+                    this.impl = old
+                }
+            }
+        }
+        open fun queue(callback: () -> Unit) {
+            callback()
         }
     }
 }
