@@ -1,5 +1,7 @@
 package com.soywiz.async
 
+import java.io.Closeable
+
 open class EventLoop {
     companion object {
         var impl = EventLoop()
@@ -15,8 +17,8 @@ open class EventLoop {
         }
 
         fun queue(callback: () -> Unit) = impl.queue(callback)
-        fun setTimeout(ms: Int, callback: () -> Unit) = impl.setTimeout(ms, callback)
-        fun setInterval(ms: Int, callback: () -> Unit) = impl.setInterval(ms, callback)
+        fun setTimeout(ms: Int, callback: () -> Unit): Closeable = impl.setTimeout(ms, callback)
+        fun setInterval(ms: Int, callback: () -> Unit): Closeable = impl.setInterval(ms, callback)
     }
 
     open fun queue(callback: () -> Unit) {
@@ -27,19 +29,25 @@ open class EventLoop {
         //step()
     }
 
-    open fun setTimeout(ms: Int, callback: () -> Unit) {
+    open fun setTimeout(ms: Int, callback: () -> Unit): Closeable {
+        var closed = false
+        val closeable = Closeable { closed = true }
         Thread {
             Thread.sleep(ms.toLong())
-            queue(callback)
+            if (!closed) queue(callback)
         }.start()
+        return closeable
     }
 
-    open fun setInterval(ms: Int, callback: () -> Unit) {
+    open fun setInterval(ms: Int, callback: () -> Unit): Closeable {
+        var closed = false
+        val closeable = Closeable { closed = true }
         Thread {
-            while (true) {
+            while (!closed) {
                 Thread.sleep(ms.toLong())
-                queue(callback)
+                if (!closed) queue(callback)
             }
         }.start()
+        return closeable
     }
 }
