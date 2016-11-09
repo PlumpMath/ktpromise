@@ -11,6 +11,7 @@ fun <T : Any> Promise<T>.syncWait(): T {
         error = it
         done = true
     }
+    EventLoop.impl.step()
     while (!done) {
         EventLoop.impl.step()
         Thread.sleep(20L)

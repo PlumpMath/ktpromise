@@ -5,8 +5,9 @@ class AwaitAsyncController<T : Any> {
     private val deferred = Promise.Deferred<T>()
     val promise = deferred.promise
 
-    suspend fun <T : Any> await(promise: Promise<T>, c: Continuation<T>) {
-        promise.then { c.resume(it) }.otherwise { c.resumeWithException(it) }
+    suspend fun <T : Any> await(promiseToAwait: Promise<T>, c: Continuation<T>) {
+        this.deferred.linkTo(promiseToAwait)
+        promiseToAwait.then { c.resume(it) }.otherwise { c.resumeWithException(it) }
     }
 
     suspend fun <T : Any> awaitTask(callback: () -> T, c: Continuation<T>) {
