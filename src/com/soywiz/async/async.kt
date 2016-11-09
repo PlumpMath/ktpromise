@@ -1,4 +1,4 @@
-package com.soywiz.promise
+package com.soywiz.async
 
 /*
 fun <T : Any> Context.async(coroutine routine: AwaitAsyncController<T>.() -> Continuation<Unit>): Promise<T> {

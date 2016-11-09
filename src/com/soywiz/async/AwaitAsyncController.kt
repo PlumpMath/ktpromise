@@ -1,4 +1,4 @@
-package com.soywiz.promise
+package com.soywiz.async
 
 
 class AwaitAsyncController<T : Any> {
@@ -25,9 +25,9 @@ class AwaitAsyncController<T : Any> {
         Thread {
             try {
                 val result = callback()
-                Promise.EventLoop.impl.queue { c.resume(result) }
+                EventLoop.impl.queue { c.resume(result) }
             } catch (t: Throwable) {
-                Promise.EventLoop.impl.queue { c.resumeWithException(t) }
+                EventLoop.impl.queue { c.resumeWithException(t) }
             }
         }.start()
 

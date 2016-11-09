@@ -1,4 +1,4 @@
-package com.soywiz.promise
+package com.soywiz.async
 
 import java.util.*
 
@@ -54,24 +54,6 @@ class Promise<T : Any> {
                 error.printStackTrace()
             }
             promise._check()
-        }
-    }
-    open class EventLoop {
-        companion object {
-            var impl = EventLoop()
-
-            inline fun tempImpl(impl: EventLoop, callback: () -> Unit) {
-                val old = this.impl
-                this.impl = impl
-                try {
-                    callback()
-                } finally {
-                    this.impl = old
-                }
-            }
-        }
-        open fun queue(callback: () -> Unit) {
-            callback()
         }
     }
 }
